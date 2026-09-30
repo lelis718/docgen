@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocGen</string>
+    <string name="share_label">Gerar um PDF único</string>
+
+    <!-- Dialogo de salvamento -->
+    <string name="save_title">Salvar PDF</string>
+    <string name="save_message">Informe o nome do arquivo e onde salvá-lo.</string>
+    <string name="save_file_name">Nome do arquivo</string>
+    <string name="save_location">Local</string>
+    <string name="save_location_downloads">Downloads</string>
+    <string name="save_location_documents">Documentos</string>
+    <string name="save_location_choose">Escolher local…</string>
+    <string name="save_confirm">Salvar</string>
+    <string name="save_cancel">Cancelar</string>
+    <string name="save_name_hint">documento.pdf</string>
+    <string name="save_location_tree">Pasta padrão: %1$s</string>
+
+    <!-- Tela inicial (aberta pelo icone) -->
+    <string name="setup_title">Como usar o DocGen</string>
+    <string name="setup_instructions">1. Selecione fotos, documentos ou textos em qualquer app (Arquivos, Galeria, Gmail…).\n2. Toque em Compartilhar → DocGen → “Gerar um PDF único”.\n3. Confirme o nome e o local: o PDF é gerado na ordem da sua seleção e abre sozinho.\n\nO local padrão abaixo fica pré-marcado toda vez que você gerar um PDF. Para trocá-lo depois, toque no ícone do DocGen novamente.</string>
+    <string name="setup_destination">Local padrão para salvar</string>
+    <string name="setup_tree">Escolher pasta…</string>
+    <string name="setup_save">Salvar</string>
+    <string name="setup_close">Fechar</string>
+    <string name="setup_saved">Local padrão salvo.</string>
+
+    <!-- Progresso -->
+    <string name="progress_title">DocGen</string>
+    <string name="progress_message">Gerando o PDF…</string>
+
+    <!-- Resultados -->
+    <string name="open_chooser_title">Abrir PDF com</string>
+    <string name="created_toast">PDF gerado: %1$s</string>
+
+    <!-- Erros -->
+    <string name="error_no_files">Selecione ao menos um arquivo para gerar o PDF.</string>
+    <string name="error_unsupported">Nenhum arquivo compatível na seleção (imagens, PDF e texto).</string>
+    <string name="error_invalid_name">Nome de arquivo inválido.</string>
+    <string name="error_generation">Não foi possível gerar o PDF: %1$s</string>
+    <string name="error_save">Não foi possível salvar o arquivo.</string>
+    <string name="error_open">PDF salvo em %1$s, mas não foi possível abri-lo.</string>
+    <string name="error_missing_app">Nenhum aplicativo encontrado para abrir PDFs.</string>
+</resources>

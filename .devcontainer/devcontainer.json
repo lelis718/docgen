@@ -1,0 +1,42 @@
+{
+  "name": "Android (Kotlin + Java)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "appPort": [ "0.0.0.0:4096:4096" ],
+  "runArgs": [
+    "--add-host=host.docker.internal:host-gateway",
+    // Necessário para o emulador Android (KVM). Remova a linha se a host não tiver /dev/kvm.
+    "--device=/dev/kvm"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2.5.9": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/devcontainers/features/node:2.1.0": {
+      "version": "lts"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "fwcd.kotlin",
+        "sst-dev.opencode-v2"
+      ],
+      "settings": {
+        "remote.extensionKind": {
+          "sst-dev.opencode-v2": [
+            "workspace"
+          ]
+        },
+        "opencode.projectRoot": "/workspaces/docgen",
+        "opencode.binaryPath": "/usr/local/bin/opencode"
+      }
+    }
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "chmod +x .devcontainer/*.sh && ./.devcontainer/postCreate.sh"
+}

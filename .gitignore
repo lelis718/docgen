@@ -1,0 +1,31 @@
+# --- Build / saída de compilação ---
+build/
+app/build/
+.gradle/
+.cxx/
+.externalNativeBuild/
+captures/
+*.apk
+*.aab
+*.ap_
+*.hprof
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+
+# --- Configuração local do SDK ---
+local.properties
+
+# --- ASSINATURA: nunca versionar (keystore e senhas) ---
+.env
+keystore.properties
+key.properties
+*.jks
+*.keystore
+*.p12
+*.pepk
+*.jceks

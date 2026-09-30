@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="8dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/save_file_name"
+        android:textColor="@color/text_primary"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/input_file_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="@string/save_name_hint"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/save_location"
+        android:textColor="@color/text_primary"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <RadioGroup
+        android:id="@+id/radio_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/radio_downloads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/save_location_downloads"
+            android:textColor="@color/text_primary" />
+
+        <RadioButton
+            android:id="@+id/radio_documents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/save_location_documents"
+            android:textColor="@color/text_primary" />
+
+        <RadioButton
+            android:id="@+id/radio_default_tree"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/save_location_tree"
+            android:textColor="@color/text_primary"
+            android:visibility="gone" />
+
+        <RadioButton
+            android:id="@+id/radio_choose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/save_location_choose"
+            android:textColor="@color/text_primary" />
+    </RadioGroup>
+</LinearLayout>

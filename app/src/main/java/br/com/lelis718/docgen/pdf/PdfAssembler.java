@@ -15,6 +15,7 @@ import android.os.ParcelFileDescriptor;
 import android.text.TextPaint;
 
 import br.com.lelis718.docgen.core.Box;
+import br.com.lelis718.docgen.core.CompressionLevel;
 import br.com.lelis718.docgen.core.Element;
 import br.com.lelis718.docgen.core.PdfPlan;
 import br.com.lelis718.docgen.core.PlannedPage;
@@ -27,14 +28,18 @@ import java.util.List;
 
 public final class PdfAssembler {
 
-    public static final float RENDER_SCALE = 2f;
     private static final int MAX_BITMAP_PIXELS = 4_000_000;
 
     private final ContentResolver resolver;
     private final Paint bitmapPaint;
     private final TextPaint textPaint;
+    private final float renderScale;
 
     public PdfAssembler(ContentResolver resolver) {
+        this(resolver, CompressionLevel.defaultLevel());
+    }
+
+    public PdfAssembler(ContentResolver resolver, CompressionLevel compression) {
         if (resolver == null) {
             throw new IllegalArgumentException("resolver == null");
         }
@@ -42,12 +47,15 @@ public final class PdfAssembler {
         this.bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
         this.textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         this.textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        this.renderScale = compression == null
+                ? CompressionLevel.defaultLevel().renderScale()
+                : compression.renderScale();
     }
 
     public void write(PdfPlan plan, List<SourceDescriptor> sources, OutputStream output)
             throws IOException {
         PdfDocument document = new PdfDocument();
-        RendererCache renderers = new RendererCache(resolver, sources);
+        RendererCache renderers = new RendererCache(resolver, sources, renderScale);
         try {
             for (PlannedPage planned : plan.pages()) {
                 PdfDocument.PageInfo info = new PdfDocument.PageInfo.Builder(
@@ -139,11 +147,32 @@ public final class PdfAssembler {
         options.inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight,
                 pixelSize(dest.width()), pixelSize(dest.height()));
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap decoded;
         try (InputStream in = resolver.openInputStream(uri)) {
-            return BitmapFactory.decodeStream(in, null, options);
+            decoded = BitmapFactory.decodeStream(in, null, options);
         } catch (Exception e) {
             return null;
         }
+        return scaleToTarget(decoded, pixelSize(dest.width()), pixelSize(dest.height()));
+    }
+
+    private static Bitmap scaleToTarget(Bitmap bitmap, int targetWidth, int targetHeight) {
+        if (bitmap == null) {
+            return null;
+        }
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        if (width <= targetWidth && height <= targetHeight) {
+            return bitmap;
+        }
+        float scale = Math.min((float) targetWidth / width, (float) targetHeight / height);
+        int scaledWidth = Math.max(1, Math.round(width * scale));
+        int scaledHeight = Math.max(1, Math.round(height * scale));
+        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true);
+        if (scaled != bitmap) {
+            bitmap.recycle();
+        }
+        return scaled;
     }
 
     private static Uri uriOf(List<SourceDescriptor> sources, int itemIndex) {
@@ -159,8 +188,8 @@ public final class PdfAssembler {
         return sample;
     }
 
-    private static int pixelSize(float points) {
-        return Math.max(1, Math.round(points * RENDER_SCALE));
+    private int pixelSize(float points) {
+        return Math.max(1, Math.round(points * renderScale));
     }
 
     private static RectF toRect(Box box) {
@@ -171,13 +200,16 @@ public final class PdfAssembler {
 
         private final ContentResolver cacheResolver;
         private final List<SourceDescriptor> cacheSources;
+        private final float cacheRenderScale;
         private int openIndex = -1;
         private ParcelFileDescriptor descriptor;
         private PdfRenderer renderer;
 
-        RendererCache(ContentResolver cacheResolver, List<SourceDescriptor> cacheSources) {
+        RendererCache(ContentResolver cacheResolver, List<SourceDescriptor> cacheSources,
+                      float cacheRenderScale) {
             this.cacheResolver = cacheResolver;
             this.cacheSources = cacheSources;
+            this.cacheRenderScale = cacheRenderScale;
         }
 
         Bitmap render(int itemIndex, int pageIndex, float widthPoints, float heightPoints) {
@@ -189,8 +221,8 @@ public final class PdfAssembler {
             if (renderer == null) {
                 return null;
             }
-            int width = pixelSize(widthPoints);
-            int height = pixelSize(heightPoints);
+            int width = Math.max(1, Math.round(widthPoints * cacheRenderScale));
+            int height = Math.max(1, Math.round(heightPoints * cacheRenderScale));
             long pixels = (long) width * height;
             if (pixels > MAX_BITMAP_PIXELS) {
                 double factor = Math.sqrt((double) MAX_BITMAP_PIXELS / pixels);

@@ -22,8 +22,10 @@ e local de gravação, e o PDF pronto já abre no visualizador do Android.
   * **PDFs** — rasterizados página a página, cada um começando sempre em página nova.
   * **Textos** (txt/md/csv/json/log/…) — UTF‑8 quebrado em linhas, 51 linhas por página,
     cada arquivo começa em página nova.
-* Pede **nome do arquivo** e **local**: Downloads, Documentos ou *Escolher local…*
-  (seletor de arquivos do sistema — SAF).
+* Pede **nome do arquivo**, **local** (Downloads, Documentos ou *Escolher local…* —
+  seletor de arquivos do sistema, SAF) e a **compressão** do PDF em um dropdown:
+  **Alta** (menor arquivo), **Média** (padrão) ou **Baixa** (melhor qualidade).
+  O nível controla a resolução com que imagens e páginas de PDF são rasterizadas.
 * Grava sem nenhuma permissão: `MediaStore` (scoped storage) ou SAF.
 * Abre o resultado no visualizador de PDF instalado no aparelho; se não houver nenhum,
   mostra o caminho do arquivo salvo.
@@ -56,7 +58,8 @@ br.com.lelis718.docgen
 │   ├── TextTypesetter, ImageFit             quebra de linhas, fit de imagem
 │   ├── PageGeometry, Element, PlannedPage   geometria A4 (595×842, margem 36)
 │   ├── FileNameRules                        nome do arquivo
-│   └── DestinationValue                     destino padrão (downloads/docs/pasta)
+│   ├── DestinationValue                     destino padrão (downloads/docs/pasta)
+│   └── CompressionLevel                     escala de rasterização (alta/média/baixa)
 ├── resolve/ ItemResolver            URI → SourceDescriptor (bytes/dimensões)
 ├── pdf/     PdfAssembler            executa o plano com PdfDocument/PdfRenderer
 └── store/   OutputStore, PdfOpener  MediaStore/SAF + abertura no visualizador
@@ -65,7 +68,7 @@ br.com.lelis718.docgen
 
 A separação que sustenta o MVP: **`core` não importa nada de `android.*`**. Ele devolve um
 `PdfPlan` (páginas com elementos posicionados); quem toca em API do Android é apenas o
-`PdfAssembler`. Por isso os 49 testes unitários rodam em segundos na JVM, sem emulador.
+`PdfAssembler`. Por isso os 52 testes unitários rodam em segundos na JVM, sem emulador.
 
 ### Fluxo de dados
 
@@ -78,6 +81,7 @@ Intent (SEND / SEND_MULTIPLE)
                            imagem = contain top-aligned + gap 10pt (reusa a página);
                            PDF/texto = sempre página nova. Cursor em `cursorY`.
   → PdfAssembler           página A4 por página, drawBitmap / renderPage / drawText
+                           na escala de rasterização da compressão escolhida
   → OutputStore            MediaStore Downloads|Documentos ou SAF (IS_PENDING)
   → PdfOpener              ACTION_VIEW + application/pdf (com <queries> no manifest)
 ```
@@ -94,6 +98,7 @@ diálogo não reaparece e a geração continua.
 | Threads | `ExecutorService` de 1 thread + `Handler(main)`: UI nunca bloqueia |
 | Texto | `LineMeasurer` injetável no `TextTypesetter` → testeável sem `StaticLayout` |
 | Nome | `FileNameRules.sanitize` remove `/ \ : * ? " < > \|` e força `.pdf` |
+| Compressão | dropdown Alta/Média/Baixa aplica escala 1×/1,5×/2× na rasterização de imagens e páginas de PDF; padrão Média |
 | Tema | diálogos fixos em `Theme_DeviceDefault_Light_Dialog_Alert` (o app só tem diálogos) |
 
 ---
@@ -167,7 +172,8 @@ keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab | h
 
 1. Abra *Arquivos* → *Downloads* → selecione 2 ou mais itens (imagens, PDF, .txt).
 2. Menu de compartilhamento → **DocGen** → **“Gerar um PDF único”**.
-3. Nome pré‑preenchido (`DocGen_AAAAmmdd_HHmmss.pdf`) → **Salvar**.
+3. Nome pré‑preenchido (`DocGen_AAAAmmdd_HHmmss.pdf`), local e compressão
+   (Alta/Média/Baixa) → **Salvar**.
 4. O PDF é gravado e abre automaticamente no visualizador.
 
 Capturas reais desse fluxo estão em [`docs/`](docs/).
@@ -177,7 +183,7 @@ Capturas reais desse fluxo estão em [`docs/`](docs/).
 ## 4. Testes
 
 ```bash
-./gradlew test                      # 49 unitários (JVM) — core/*
+./gradlew test                      # 52 unitários (JVM) — core/*
 ./gradlew connectedDebugAndroidTest # E2E no emulador: ShareEntryActivityTest
 ```
 
@@ -187,7 +193,7 @@ A4** e a ordem por cor (vermelho → verde → brancas).
 
 Cobertura dos unitários: `ShareParser`, `ItemClassifier`, `PdfLayoutPlanner`
 (empilhar/quebrar página/página cheia), `TextTypesetter` (51 linhas/página),
-`ImageFit` (contain/cover), `FileNameRules`, `DestinationValue`.
+`ImageFit` (contain/cover), `FileNameRules`, `DestinationValue`, `CompressionLevel`.
 
 ---
 
@@ -213,7 +219,7 @@ azul-marinho `#1B2A4A` — mesma paleta dos botões do app.
 app/src/main/java/br/com/lelis718/docgen/   código (Java, sem comentários — documentação aqui)
 app/src/main/res/               layouts de diálogo, strings pt-BR, ícones
 docs/                           capturas do fluxo real no emulador
-app/src/test/                   49 testes unitários
+app/src/test/                   52 testes unitários
 app/src/androidTest/            E2E instrumentado
 docs/                           capturas do fluxo real no emulador
 gradle/  gradlew                wrapper do Gradle 9.8.0

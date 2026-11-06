@@ -15,6 +15,12 @@
     <string name="save_cancel">Cancelar</string>
     <string name="save_name_hint">documento.pdf</string>
     <string name="save_location_tree">Pasta padrão: %1$s</string>
+    <string name="save_compression">Compressão</string>
+    <string-array name="compression_levels">
+        <item>Alta — menor arquivo</item>
+        <item>Média — equilibrada</item>
+        <item>Baixa — melhor qualidade</item>
+    </string-array>
 
     <!-- Tela inicial (aberta pelo icone) -->
     <string name="setup_title">Como usar o DocGen</string>

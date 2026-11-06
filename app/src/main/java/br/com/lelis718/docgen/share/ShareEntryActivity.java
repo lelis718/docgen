@@ -17,10 +17,12 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 
 import br.com.lelis718.docgen.R;
+import br.com.lelis718.docgen.core.CompressionLevel;
 import br.com.lelis718.docgen.core.DestinationValue;
 import br.com.lelis718.docgen.core.FileNameRules;
 import br.com.lelis718.docgen.core.PageGeometry;
@@ -47,6 +49,7 @@ public final class ShareEntryActivity extends Activity {
     private static final int REQUEST_CHOOSE_LOCATION = 1;
     private static final String STATE_OUTPUT_URI = "state.outputUri";
     private static final String STATE_OUTPUT_NAME = "state.outputName";
+    private static final String STATE_COMPRESSION = "state.compression";
 
     private final List<SharedItem> sharedItems = new ArrayList<>();
     private ExecutorService executor;
@@ -54,6 +57,7 @@ public final class ShareEntryActivity extends Activity {
     private AlertDialog progressDialog;
     private Uri outputUri;
     private String outputName;
+    private CompressionLevel compression = CompressionLevel.defaultLevel();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,8 @@ public final class ShareEntryActivity extends Activity {
         if (savedInstanceState != null) {
             outputUri = readParcelable(savedInstanceState);
             outputName = savedInstanceState.getString(STATE_OUTPUT_NAME);
+            compression = CompressionLevel.fromIndex(savedInstanceState.getInt(STATE_COMPRESSION,
+                    CompressionLevel.defaultLevel().ordinal()));
         }
 
         if (sharedItems.isEmpty()) {
@@ -83,6 +89,7 @@ public final class ShareEntryActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putInt(STATE_COMPRESSION, compression.ordinal());
         if (outputUri != null) {
             outState.putParcelable(STATE_OUTPUT_URI, outputUri);
             outState.putString(STATE_OUTPUT_NAME, outputName);
@@ -157,7 +164,9 @@ public final class ShareEntryActivity extends Activity {
         View content = LayoutInflater.from(this).inflate(R.layout.dialog_save, null);
         EditText nameInput = content.findViewById(R.id.input_file_name);
         RadioGroup locations = content.findViewById(R.id.radio_location);
+        Spinner compressionInput = content.findViewById(R.id.spinner_compression);
         nameInput.setText(FileNameRules.defaultName());
+        compressionInput.setSelection(compression.ordinal());
         applyDefaultDestination(content);
 
         AlertDialog dialog = dialogBuilder()
@@ -168,7 +177,8 @@ public final class ShareEntryActivity extends Activity {
                 .setNegativeButton(R.string.save_cancel, (d, w) -> finish())
                 .create();
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setOnClickListener(v -> onSaveConfirmed(dialog, nameInput, locations)));
+                .setOnClickListener(v ->
+                        onSaveConfirmed(dialog, nameInput, locations, compressionInput)));
         dialog.show();
     }
 
@@ -189,13 +199,15 @@ public final class ShareEntryActivity extends Activity {
         }
     }
 
-    private void onSaveConfirmed(AlertDialog dialog, EditText nameInput, RadioGroup locations) {
+    private void onSaveConfirmed(AlertDialog dialog, EditText nameInput, RadioGroup locations,
+                                 Spinner compressionInput) {
         String safeName = FileNameRules.sanitize(nameInput.getText().toString());
         if (safeName.isEmpty()) {
             nameInput.setError(getString(R.string.error_invalid_name));
             return;
         }
         dialog.dismiss();
+        compression = CompressionLevel.fromIndex(compressionInput.getSelectedItemPosition());
         String fileName = FileNameRules.ensurePdfExtension(safeName);
         int selected = locations.getCheckedRadioButtonId();
         if (selected == R.id.radio_choose) {
@@ -315,7 +327,8 @@ public final class ShareEntryActivity extends Activity {
             }
 
             try (OutputStream output = OutputStore.open(getContentResolver(), outputUri)) {
-                new PdfAssembler(getContentResolver()).write(plan, resolution.items(), output);
+                new PdfAssembler(getContentResolver(), compression)
+                        .write(plan, resolution.items(), output);
             }
             OutputStore.commit(getContentResolver(), outputUri);
             succeed();

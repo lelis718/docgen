@@ -71,4 +71,20 @@
             android:text="@string/save_location_choose"
             android:textColor="@color/text_primary" />
     </RadioGroup>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/save_compression"
+        android:textColor="@color/text_primary"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Spinner
+        android:id="@+id/spinner_compression"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:entries="@array/compression_levels"
+        android:spinnerMode="dropdown" />
 </LinearLayout>
